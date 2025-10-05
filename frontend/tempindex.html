@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrected DZI Viewer</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        #openseadragon-viewer {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="openseadragon-viewer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/openseadragon.min.js"></script>
+    
+    <script type="text/javascript">
+        var viewer = OpenSeadragon({
+            id: "openseadragon-viewer",
+            prefixUrl: "https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/images/",
+            
+            tileSources: "V21_088337_1627_XI_17S256W.dzi",
+
+            minPixelRatio: 1, 
+            imageLoaderLimit: 3,
+            maxImageCacheCount: 100,
+            animationTime: 0.4, 
+            springStiffness: 20,
+            debugMode: true,
+            immediateRender: true,
+        });
+    </script>
+</body>
+</html>

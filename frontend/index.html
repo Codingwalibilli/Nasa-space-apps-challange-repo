@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mars DZI Viewer</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: sans-serif;
+            color: white;
+        }
+
+        #openseadragon-viewer {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 60px);
+        }
+
+        #control-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(20, 20, 20, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #img-url {
+            width: 60%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        #load-btn {
+            background: #ff4d4d;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #load-btn:hover {
+            background: #ff6666;
+        }
+    </style>
+</head>
+<body>
+    <div id="control-bar">
+        <input type="text" id="img-url" placeholder="Enter NASA .IMG file URL (e.g. https://...)">
+        <button id="load-btn">Load Image</button>
+    </div>
+
+    <div id="openseadragon-viewer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/openseadragon.min.js"></script>
+    
+    <script>
+        const viewer = OpenSeadragon({
+            id: "openseadragon-viewer",
+            prefixUrl: "https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/images/",
+            minPixelRatio: 1,
+            imageLoaderLimit: 3,
+            maxImageCacheCount: 100,
+            animationTime: 0.4,
+            springStiffness: 20,
+            debugMode: false
+        });
+
+        document.getElementById('load-btn').addEventListener('click', async () => {
+            const url = document.getElementById('img-url').value.trim();
+            if (!url.endsWith('.IMG')) {
+                alert("Please enter a valid .IMG file URL from NASA dataset.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:8000/myimg', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'url': url })
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                alert("Error: " + data.error);
+                return;
+            }
+
+            viewer.open(data.dzi_path);
+        });
+    </script>
+</body>
+</html>
