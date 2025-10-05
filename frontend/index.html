@@ -81,7 +81,7 @@
             maxImageCacheCount: 100,
             animationTime: 0.4,
             springStiffness: 20,
-            debugMode: false
+            debugMode: true
         });
 
         document.getElementById('load-btn').addEventListener('click', async () => {
@@ -103,7 +103,7 @@
                 return;
             }
 
-            viewer.open(data.dzi_path);
+            viewer.open("../DataAPI/"+data.dzi_path);
         });
     </script>
 </body>

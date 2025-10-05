@@ -45,22 +45,35 @@ def read_ctx_image(img_bytes, metadata):
     lines = metadata['LINES']
     samples = metadata['LINE_SAMPLES']
     print(f"🖼 Reading raw image: {lines}x{samples}")
-    header_size = 8192
+
+    def find_image_start(img_bytes):
+        ascii_part = img_bytes[:32768].decode("ascii", errors="ignore")
+        end = ascii_part.find("END")
+        if end != -1:
+            return end + 3  
+        return 8192  
+
+    header_size = find_image_start(img_bytes)
     raw_bytes = img_bytes[header_size:]
     
-    expected_pixels = lines * samples
-    if len(raw_bytes) == expected_pixels:
-        dtype = np.uint8
-    elif len(raw_bytes) == expected_pixels * 2:
-        dtype = np.uint16  # assume big-endian 16-bit
-    else:
-        # fallback: auto compute
-        dtype = np.uint8 if len(raw_bytes) // expected_pixels == 1 else np.uint16
-        print(f"⚠️ Warning: raw bytes {len(raw_bytes)}, using dtype={dtype}")
+    bytes_per_pixel = len(raw_bytes) / (lines * samples)
 
-    img_array = np.frombuffer(raw_bytes, dtype=dtype)
-    img_array = img_array[:lines*samples]  # truncate if extra bytes
+    if abs(bytes_per_pixel - 1) < 0.1:
+        dtype = np.uint8
+        endian = '<'  
+    elif abs(bytes_per_pixel - 2) < 0.1:
+        dtype = np.uint16
+        endian = '>' 
+    else:
+        raise ValueError(f"Unexpected bytes per pixel: {bytes_per_pixel}")
+
+    print(f"📏 Detected {bytes_per_pixel:.2f} bytes/pixel, dtype={dtype}, endian={endian}")
+
+    # --- Read array properly ---
+    img_array = np.frombuffer(raw_bytes, dtype=np.dtype(endian + np.dtype(dtype).char))
+    img_array = img_array[:lines * samples]
     img_array = img_array.reshape((lines, samples))
+
     img_norm = cv2.normalize(img_array, None, 0, 255, cv2.NORM_MINMAX)
     img_norm = img_norm.astype(np.uint8)
     print(f"✅ Image array ready: shape {img_norm.shape}, dtype={img_norm.dtype}")
